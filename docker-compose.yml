@@ -1,0 +1,18 @@
+version: '3.6'
+
+services:
+  interop-db:
+    container_name: interop-db
+    image: postgres:10.4-alpine
+    environment:
+      - POSTGRES_USER=interop
+      - POSTGRES_PASSWORD=interop
+      - POSTGRES_DB=interop
+    ports:
+      - 5532:5432
+    volumes:
+      - interop-pg-data:/var/lib/postgresql/data
+      
+volumes:
+  interop-pg-data:
+    external: false
