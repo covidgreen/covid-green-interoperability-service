@@ -30,8 +30,8 @@ jobs:
       id: login-ecr
       uses: aws-actions/amazon-ecr-login@v1
 
-    - name: Build, tag, and push API image to Amazon ECR
-      id: build-api-image
+    - name: Build, tag, and push interop image to Amazon ECR
+      id: build-interop-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: interop/interop
@@ -56,31 +56,31 @@ jobs:
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
         echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
 
-    - name: Pull API service current task definition
+    - name: Pull interop service current task definition
       run: |
-        aws ecs describe-task-definition --task-definition qa-interop-api --query taskDefinition > api-task-definition.json
+        aws ecs describe-task-definition --task-definition qa-interop-interop --query taskDefinition > interop-task-definition.json
 
-    - name: Update API container version in task definition
-      id: api-task-def
+    - name: Update interop container version in task definition
+      id: interop-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: api-task-definition.json
-        container-name: api
-        image: ${{ steps.build-api-image.outputs.image }}
+        task-definition: interop-task-definition.json
+        container-name: interop
+        image: ${{ steps.build-interop-image.outputs.image }}
 
     - name: Update MIGRATIONS container version in task definition
       id: migrations-task-def
       uses: aws-actions/amazon-ecs-render-task-definition@v1
       with:
-        task-definition: api-task-definition.json
+        task-definition: interop-task-definition.json
         container-name: migrations
         image: ${{ steps.build-migrations-image.outputs.image }}
 
-    - name: Deploy API service
+    - name: Deploy interop service
       uses: aws-actions/amazon-ecs-deploy-task-definition@v1
       with:
         task-definition: ${{ steps.migrations-task-def.outputs.task-definition }}
-        service: qa-interop-api
+        service: qa-interop-interop
         cluster: qa-interop
         wait-for-service-stability: true
 
