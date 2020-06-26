@@ -34,7 +34,7 @@ jobs:
       id: build-api-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: interop/api
+        ECR_REPOSITORY: interop/interop
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -f ./Dockerfile-api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
