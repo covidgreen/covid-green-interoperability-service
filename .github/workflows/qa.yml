@@ -98,7 +98,7 @@ jobs:
         node-version: '12.13.1'
 
     - name: Install App Dependencies
-      run: npm install
+      run: cd lambda && npm install
 
     - name: Package Lambdas
       run: |
