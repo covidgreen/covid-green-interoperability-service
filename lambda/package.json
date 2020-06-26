@@ -5,7 +5,7 @@
   "description": "Lambda functions for contact tracing interoperability service",
   "main": "stats.js",
   "scripts": {
-    "artifact:create": "zip -r stats.zip *",
+    "artifact:create": "zip -r lambda.zip *",
     "batch:all": "env-cmd -f .env node batch.js",
     "batch:complete": "env-cmd -f .env node batch.js \"{ \\\"Records\\\": [] }\"",
     "token:gb": "env-cmd -f .env node token.js \"{ \\\"region\\\": \\\"GB\\\" }\"",
