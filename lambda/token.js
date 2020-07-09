@@ -4,8 +4,8 @@ const { getDatabase, getJwtSecret, runIfDev } = require('./utils')
 
 exports.handler = async function (event) {
   const sql = SQL`
-    INSERT INTO nations (region)
-    VALUES (${event.region})
+    INSERT INTO nations (region, public_key)
+    VALUES (${event.region}, ${event.key})
     RETURNING id`
   
   const secret = await getJwtSecret()

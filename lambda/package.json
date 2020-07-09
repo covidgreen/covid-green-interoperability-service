@@ -8,8 +8,7 @@
     "artifact:create": "zip -r lambda.zip *",
     "batch:all": "env-cmd -f .env node batch.js",
     "batch:complete": "env-cmd -f .env node batch.js \"{ \\\"Records\\\": [] }\"",
-    "token:gb": "env-cmd -f .env node token.js \"{ \\\"region\\\": \\\"GB\\\" }\"",
-    "token:ie": "env-cmd -f .env node token.js \"{ \\\"region\\\": \\\"IE\\\" }\""
+    "token": "env-cmd -f .env node token.js"
   },
   "dependencies": {
     "@nearform/sql": "^1.4.0",
