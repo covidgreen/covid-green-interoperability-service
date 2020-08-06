@@ -36,7 +36,7 @@ async function getDatabase() {
 
   if (isProduction) {
     const [{ username: user, password }, host, port, ssl, database] = await Promise.all([
-      getSecret('rds'),
+      getSecret('rds-read-write'),
       getParameter('db_host'),
       getParameter('db_port'),
       getParameter('db_ssl'),
