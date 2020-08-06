@@ -3,7 +3,7 @@ name: Deploy interop to QA
 on:
   push:
     branches:
-      - master
+      - qa
 
 jobs:
   deploy-service:
