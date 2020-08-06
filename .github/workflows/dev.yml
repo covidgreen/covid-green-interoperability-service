@@ -1,4 +1,4 @@
-name: Deploy interop to QA
+name: Deploy interop to DEV
 
 on:
   push:
@@ -58,7 +58,7 @@ jobs:
 
       - name: Pull interop service current task definition
         run: |
-          aws ecs describe-task-definition --task-definition qa-interop-interop --query taskDefinition > interop-task-definition.json
+          aws ecs describe-task-definition --task-definition dev-interop-interop --query taskDefinition > interop-task-definition.json
 
       - name: Update interop container version in task definition
         id: interop-task-def
@@ -80,8 +80,8 @@ jobs:
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
           task-definition: ${{ steps.migrations-task-def.outputs.task-definition }}
-          service: qa-interop-interop
-          cluster: qa-interop
+          service: dev-interop-interop
+          cluster: dev-interop
           wait-for-service-stability: true
 
   deploy-lambdas:
@@ -113,7 +113,7 @@ jobs:
           aws_access_key_id: ${{ secrets.CTI_DEV_KEY }}
           aws_secret_access_key: ${{ secrets.CTI_DEV_SECRET }}
           aws_region: eu-west-1
-          function_name: qa-interop-token
+          function_name: dev-interop-token
           zip_file: lambda/lambda.zip
 
       - name: deploy batch
@@ -122,5 +122,5 @@ jobs:
           aws_access_key_id: ${{ secrets.CTI_DEV_KEY }}
           aws_secret_access_key: ${{ secrets.CTI_DEV_SECRET }}
           aws_region: eu-west-1
-          function_name: qa-interop-batch
+          function_name: dev-interop-batch
           zip_file: lambda/lambda.zip
