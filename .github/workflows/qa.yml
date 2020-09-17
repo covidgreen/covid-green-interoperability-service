@@ -1,0 +1,126 @@
+name: Deploy interop to QA
+
+on:
+  push:
+    branches:
+      - qa
+
+jobs:
+  deploy-service:
+    name: Deploy service
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+
+    - name: Setup Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.13.1'
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v1
+      with:
+        aws-access-key-id: ${{ secrets.QA_KEY }}
+        aws-secret-access-key: ${{ secrets.QA_SECRET }}
+        aws-region: eu-west-1
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build, tag, and push interop image to Amazon ECR
+      id: build-interop-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: interop/interop
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -f ./Dockerfile-api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+    - name: Build, tag, and push MIGRATIONS image to Amazon ECR
+      id: build-migrations-image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        ECR_REPOSITORY: interop/migrations
+        IMAGE_TAG: ${{ github.sha }}
+      run: |
+        docker build -f ./Dockerfile-migrate -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+        docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+        echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+    - name: Pull interop service current task definition
+      run: |
+        aws ecs describe-task-definition --task-definition qa-interop-interop --query taskDefinition > interop-task-definition.json
+
+    - name: Update interop container version in task definition
+      id: interop-task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: interop-task-definition.json
+        container-name: interop
+        image: ${{ steps.build-interop-image.outputs.image }}
+
+    - name: Update MIGRATIONS container version in task definition
+      id: migrations-task-def
+      uses: aws-actions/amazon-ecs-render-task-definition@v1
+      with:
+        task-definition: interop-task-definition.json
+        container-name: migrations
+        image: ${{ steps.build-migrations-image.outputs.image }}
+
+    - name: Deploy interop service
+      uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+      with:
+        task-definition: ${{ steps.migrations-task-def.outputs.task-definition }}
+        service: qa-interop-interop
+        cluster: qa-interop
+        wait-for-service-stability: true
+
+  deploy-lambdas:
+    name: Deploy lambdas
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+
+    - name: Setup Node
+      uses: actions/setup-node@v1
+      with:
+        node-version: '12.13.1'
+
+    - name: Install App Dependencies
+      run: cd lambda && npm install
+
+    - name: Package Lambdas
+      run: |
+        cd lambda && npm run artifact:create
+      env:
+        ORG: managed
+        BUILD: 0.0.1
+
+    - name: deploy token
+      uses: appleboy/lambda-action@master
+      with:
+        aws_access_key_id: ${{ secrets.QA_KEY }}
+        aws_secret_access_key: ${{ secrets.QA_SECRET }}
+        aws_region: eu-west-1
+        function_name: qa-interop-token
+        zip_file: lambda/lambda.zip
+
+    - name: deploy batch
+      uses: appleboy/lambda-action@master
+      with:
+        aws_access_key_id: ${{ secrets.QA_KEY }}
+        aws_secret_access_key: ${{ secrets.QA_SECRET }}
+        aws_region: eu-west-1
+        function_name: qa-interop-batch
+        zip_file: lambda/lambda.zip
