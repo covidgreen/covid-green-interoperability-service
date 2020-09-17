@@ -1,26 +1,5 @@
-const fetch = require('node-fetch')
-const querystring = require('querystring')
 const SQL = require('@nearform/sql')
 const { getBatchSize, getDatabase, runIfDev } = require('./utils')
-
-async function triggerCallbacks(client, batchTag) {
-  const { rows } = await client.query(SQL`SELECT url FROM callbacks`)
-
-  for (const { url } of rows) {
-    try {
-      const query = querystring.stringify({
-        batchTag,
-        date: new Date().toISOString().substr(0, 10)
-      })
-
-      await fetch(`${url}?${query}`, { method: 'GET' })
-
-      console.log(`request succeeded to ${url}`)
-    } catch {
-      console.log(`request failed to ${url}`)
-    }
-  }
-}
 
 async function updateExposures(client, batchSize, batchId) {
   const query = SQL`
@@ -35,15 +14,31 @@ async function updateExposures(client, batchSize, batchId) {
   await client.query(query)
 }
 
+async function updatePreviousBatch(client, tag) {
+  const query = SQL`
+    UPDATE download_batches
+    SET next = ${tag}
+    WHERE id IN (
+      SELECT id
+      FROM download_batches
+      WHERE next IS NULL AND tag != ${tag}
+      ORDER BY created_at ASC
+      LIMIT 1
+    )`
+
+  await client.query(query)
+}
+
 async function createBatch(client, batchSize) {
   const query = SQL`
     INSERT INTO download_batches DEFAULT VALUES
-    RETURNING id`
+    RETURNING id, tag`
 
   const { rows } = await client.query(query)
-  const [{ id }] = rows
+  const [{ id, tag }] = rows
 
   await updateExposures(client, batchSize, id)
+  await updatePreviousBatch(client, tag)
 
   console.log(`created batch ${id}`)
 
@@ -62,24 +57,18 @@ async function countPendingExposures(client) {
   return Number(count)
 }
 
-exports.handler = async function (event) {
+exports.handler = async function(event) {
   const client = await getDatabase()
   const pendingExposures = await countPendingExposures(client)
   const batchSize = await getBatchSize()
-  const promises = []
 
-  const batchCount = event.Records ? 
-    Math.floor(pendingExposures / batchSize) :
-    Math.ceil(pendingExposures / batchSize)
-
+  const batchCount = event.Records
+    ? Math.floor(pendingExposures / batchSize)
+    : Math.ceil(pendingExposures / batchSize)
 
   for (let i = 0; i < batchCount; i++) {
-    const id = await createBatch(client, batchSize)
-    
-    promises.push(triggerCallbacks(client, id))
+    await createBatch(client, batchSize)
   }
-
-  await Promise.all(promises)
 }
 
 runIfDev(exports.handler)
