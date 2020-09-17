@@ -60,8 +60,6 @@ openssl ec -in private.pem -pubout -out public.pem
 }
 ```
 
-3) Optionally, the client can create a callback URL. When a new batch is available for download, the interop service will make a GET request to this URL.
-
 ### Upload
 
 Exposure keys should be regularly upload from the client to the interop service using the `POST /upload` endpoint. The request body should include two properties: `batchTag` and `payload`.

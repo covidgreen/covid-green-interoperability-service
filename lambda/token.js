@@ -2,12 +2,12 @@ const jwt = require('jsonwebtoken')
 const SQL = require('@nearform/sql')
 const { getDatabase, getJwtSecret, runIfDev } = require('./utils')
 
-exports.handler = async function (event) {
+exports.handler = async function(event) {
   const sql = SQL`
     INSERT INTO nations (region, public_key)
     VALUES (${event.region}, ${event.key})
     RETURNING id`
-  
+
   const secret = await getJwtSecret()
   const client = await getDatabase()
   const { rowCount, rows } = await client.query(sql)
