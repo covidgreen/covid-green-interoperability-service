@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS certificates (
+  id UUID PRIMARY KEY NOT NULL DEFAULT GEN_RANDOM_UUID(),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  nation_id UUID NOT NULL,
+  fingerprint TEXT NOT NULL,
+  type TEXT NOT NULL,
+  revoked BOOLEAN NOT NULL DEFAULT FALSE,
+  host TEXT NOT NULL
+);
+
+ALTER TABLE exposures
+  ADD COLUMN origin TEXT NULL,
+  ADD COLUMN test_type TEXT NOT NULL DEFAULT 'UNKNOWN',
+  ADD COLUMN days_since_onset INT NULL;
+
+ALTER TABLE upload_batches
+  ADD COLUMN certificate_id UUID NULL,
+  ADD COLUMN signature TEXT NULL;
+
+ALTER TABLE download_batches
+  ADD COLUMN next TEXT NULL;
+
+DROP TABLE callbacks;
