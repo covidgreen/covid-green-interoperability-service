@@ -7,7 +7,7 @@ on:
 
 jobs:
   deploy-service-cti:
-    name: Deploy service
+    name: Deploy service to CTI
     runs-on: ubuntu-latest
 
     steps:
@@ -85,7 +85,7 @@ jobs:
         wait-for-service-stability: true
 
   deploy-lambdas-cti:
-    name: Deploy lambdas
+    name: Deploy lambdas to CTI
     runs-on: ubuntu-latest
 
     steps:
@@ -126,7 +126,7 @@ jobs:
         zip_file: lambda/lambda.zip
 
   deploy-service-scot:
-    name: Deploy service
+    name: Deploy service to SCOT
     runs-on: ubuntu-latest
 
     steps:
@@ -153,7 +153,7 @@ jobs:
       id: build-interop-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: interop/interop
+        ECR_REPOSITORY: scot-interop/interop
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -f ./Dockerfile-api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -166,7 +166,7 @@ jobs:
       id: build-migrations-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: interop/migrations
+        ECR_REPOSITORY: scot-interop/migrations
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -f ./Dockerfile-migrate -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -204,7 +204,7 @@ jobs:
         wait-for-service-stability: true
 
   deploy-lambdas-scot:
-    name: Deploy lambdas
+    name: Deploy lambdas to SCOT
     runs-on: ubuntu-latest
 
     steps:
@@ -240,6 +240,6 @@ jobs:
       with:
         aws_access_key_id: ${{ secrets.SCOT_QA_KEY }}
         aws_secret_access_key: ${{ secrets.SCOT_QA_SECRET }}
-        aws_region: eu-west-1
+        aws_region: eu-west-2
         function_name: qa-scot-interop-batch
         zip_file: lambda/lambda.zip
