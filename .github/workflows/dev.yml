@@ -34,7 +34,7 @@ jobs:
       id: build-interop-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: interop/interop
+        ECR_REPOSITORY: nfcs-interop/interop
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -f ./Dockerfile-api -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -47,7 +47,7 @@ jobs:
       id: build-migrations-image
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        ECR_REPOSITORY: interop/migrations
+        ECR_REPOSITORY: nfcs-interop/migrations
         IMAGE_TAG: ${{ github.sha }}
       run: |
         docker build -f ./Dockerfile-migrate -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
