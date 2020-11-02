@@ -24,7 +24,6 @@
     "csv-stringify": "^5.5.1",
     "date-fns": "^2.11.1",
     "dotenv": "^6.2.0",
-    "end-of-stream": "^1.4.4",
     "env-schema": "^1.0.0",
     "fastify": "^2.11.0",
     "fastify-autoload": "^1.2.0",
