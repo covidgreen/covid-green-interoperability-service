@@ -143,8 +143,9 @@ A subsequent request to `GET /download/2020-07-01?batchTag=d66f3152-bf2d-49a9-94
 
 ### Contributors
 
-* TBD
-* TBD
+* @dennisgove - Dennis Gove <dgove1@bloomberg.net>
+* @dharding - David J Harding <davidjasonharding@gmail.com>
+* @fiacc - Fiac O'Brien Moran <fiacc.obrienmoran@nearform.com>
 
 ### Past Contributors
 
