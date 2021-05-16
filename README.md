@@ -2,6 +2,8 @@
 
 # Contact Tracing Interoperability Service
 
+This is a service to support interoperability between GAEN back-end services, for example between applications operated by different jurisdictions. 
+
 ### Set up
 ​
 The interoperability service consists of a Fastify server. To get this running will require the following steps.
